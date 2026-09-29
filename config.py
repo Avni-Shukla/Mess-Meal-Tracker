@@ -1,15 +1,28 @@
-# config.py
+# config.py - Configuration settings for Mess Meal Tracker
 
+# Database settings
 DATABASE_PATH = "data/mess_meal_tracker.db"
-DB_FOLDER = "data"
+DB_NAME = "data/mess_meal_tracker.db"
+DB_TABLE = "meal_records"
 
-DATE_FORMAT = "%Y-%m-%d"
-
+# Messages dictionary
 MESSAGES = {
-    "title": "=" * 50 + "\n          MESS MEAL TRACKER\n" + "=" * 50,
-    "invalid_date": "\nError: Invalid date format. Use YYYY-MM-DD.",
-    "invalid_number": "\nError: Please enter whole numbers only.",
-    "saved_success": "\nMeal record saved successfully.",
-    "no_records_today": "\nNo records found for today.",
-    "no_records_all": "\nNo records found in database.",
+    "welcome": "MESS MEAL TRACKER",
+    "title": "MESS MEAL TRACKER",
+    "menu": """
+1. Add Meal Record
+2. View Today's Record
+3. View All Records
+4. Exit
+""",
+    "success": "✓ Record saved successfully!",
+    "saved_success": "✓ Record saved successfully!",
+    "error": "✗ Error occurred!",
+    "not_found": "No record found!",
+    "no_records_today": "No records found for today.",
+    "no_records": "No records found in database.",
+    "goodbye": "Thank you for using Mess Meal Tracker. Goodbye!"
 }
+
+# Date format
+DATE_FORMAT = "%Y-%m-%d"

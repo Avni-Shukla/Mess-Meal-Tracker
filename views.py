@@ -1,51 +1,45 @@
-# views.py
+# views.py - Display functions for Mess Meal Tracker
 
 from config import MESSAGES
 
 def display_title():
-    """Display the application title."""
-    print(MESSAGES["title"])
+    """Print top title banner."""
+    print("\n==============================")
+    print(f"      {MESSAGES['title']}      ")
+    print("==============================")
 
 def display_menu():
-    """Display the main menu."""
-    print("\n1. Add Meal Record")
-    print("2. View Today's Record")
-    print("3. View All Records")
-    print("4. Exit")
+    """Print application menu."""
+    display_title()
+    print(MESSAGES["menu"].strip())
+    print("==============================")
+
+def display_success(message: str):
+    """Display success message."""
+    print(f"✓ {message}")
+
+def display_error(message: str):
+    """Display error message."""
+    print(f"❌ {message}")
 
 def display_record(record):
-    """Display a single meal record."""
+    """Display a single day's record."""
     if not record:
-        print(MESSAGES["no_records_today"])
+        print(f"\nℹ {MESSAGES['no_records_today']}")
         return
-    
-    print(f"\nDate: {record[1]}")
-    print(f"Meals Prepared: {record[2]}")
-    print(f"Meals Served: {record[3]}")
-    print(f"Meals Consumed: {record[4]}")
-    print(f"Food Waste: {record[5]}")
+    print("\nDate        | Prepared | Served | Consumed | Waste")
+    print("-" * 52)
+    print(f"{record[0]:<11} | {record[1]:<8} | {record[2]:<6} | {record[3]:<8} | {record[4]}")
 
-def display_all_records(records):
-    """Display all meal records."""
+def display_all_records(records, stats):
+    """Display all historical records in tabular format with summary stats."""
     if not records:
-        print(MESSAGES["no_records_all"])
+        print(f"\nℹ {MESSAGES['no_records']}")
         return
     
-    print("\n" + "=" * 50)
-    print("ALL MEAL RECORDS")
-    print("=" * 50)
-    
-    for record in records:
-        print(f"\nID: {record[0]}")
-        print(f"Date: {record[1]}")
-        print(f"Prepared: {record[2]} | Served: {record[3]} | Consumed: {record[4]} | Waste: {record[5]}")
-    
-    print("\n" + "=" * 50)
-
-def display_success():
-    """Display success message."""
-    print(MESSAGES["saved_success"])
-
-def display_error(message):
-    """Display an error message."""
-    print(f"\nError: {message}")
+    print("\nDate        | Prepared | Served | Consumed | Waste")
+    print("-" * 52)
+    for r in records:
+        print(f"{r[0]:<11} | {r[1]:<8} | {r[2]:<6} | {r[3]:<8} | {r[4]}")
+    print("-" * 52)
+    print(f"Total: {stats['total_records']} records | Total Waste: {stats['total_waste']} meals | Avg Waste: {stats['avg_waste']} meals/day")

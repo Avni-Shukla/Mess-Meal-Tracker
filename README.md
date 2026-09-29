@@ -1,119 +1,84 @@
 # Mess Meal Tracker
 
-A simple command-line application to track daily meal quantities and food waste in a mess or hostel.
+This is a command-line application used to track the daily mess meals. It is used to record the data and calculate the amount of wasted food in a mess or a hostel.
 
 ## Overview
 
-Mess Meal Tracker helps mess managers and student coordinators record how many meals are prepared, served, and consumed each day. It automatically calculates food waste and stores all records in a SQLite database for future analysis.
+Mess Meal Tracker can help the mess committee or the student body track the number of meals prepared, served, and consumed by the students every day. It can collect the data about the wasted food and save it in a SQLite database for later statistical analysis.
 
 ## Features
 
-- Add daily meal records (date, prepared, served, consumed)  
-- Automatic calculation of food waste  
-- Input validation (no negative numbers, logical constraints)  
-- Persistent storage using SQLite  
-- View today’s record  
-- View all historical records  
-- Modular, extensible codebase  
-- Basic statistics (average waste, etc.)  
+- Tracking and recording the meals - prepared, served, and consumed.
+- Calculation of the wasted food.
+- Validation of the user input.
+- Storage of the recorded data in a SQLite database.
+- Displaying of the data - today's record, all records.
+- Easy to extend, modularized code
+- Statistics collecting
 
 ## Technologies / Tools Used
-
-- Python 3  
-- SQLite (via `sqlite3` module)  
-- Standard library only (no external dependencies)  
-- Git & GitHub for version control  
+- Python 3
+- SQLite (for the database)
+- The standard library modules
+- Git and GitHub (for commits and version control)
+The following tools and technologies have been used for the development of this project:
 
 ## Project Structure
 
-```text
-mess-meal-tracker/
-├── main.py              # Entry point, user interface
-├── database.py          # Database connection and CRUD operations
-├── calculations.py      # Food waste calculations
-├── validation.py        # Input validation functions
-├── config.py            # Configuration constants
-├── views.py             # Display and formatting functions
-├── stats.py             # Basic statistics functions
-├── test_validation.py   # Simple validation tests
-├── statement.md         # Problem statement and scope
-├── README.md            # This file
+├── main.py      # The main file containing the interface
+├── database.py    # Database related operations
+├── calculations.py  # Calculation related functions
+├── validation.py   # Validation related functions
+├── config.py     # The configuration file
+├── views.py     # Views related functionality
+├── stats.py     # Statistics related functionality
+├── test_validation.py # Test cases for our validation function
+├── statement.md   # Statement file
+├── README.md     # This file
 └── data/
-    └── mess_meal_tracker.db  # SQLite database (created automatically)
-```
+└── mess_meal_tracker.db # The SQLite database
 
-## Installation & Running the Project
+## Installation and Running the Project
+The following prerequisites must be met in order to install and run the project locally on your machine:
+- Python 3
+- Git
+Once the prerequisites are installed, run the following commands:
 
-### Prerequisites
-
-- Python 3 installed  
-- Git installed (for cloning)  
-
-### Steps
-
-1. Clone the repository:
-
-```bash
 git clone [https://github.com/your-username/mess-meal-tracker.git](https://github.com/your-username/mess-meal-tracker.git)
 cd mess-meal-tracker
-```
 
-2. (Optional) Create a virtual environment:
-
-```bash
+If you'd like, you can create a virtual environment:
 python -m venv venv
-# On Windows:
+# activate the environment
+# For Windows
 venv\Scripts\activate
-# On macOS/Linux:
+# For macOS/Linux
 source venv/bin/activate
-```
-
-3. Run the application:
-
-```bash
-python main.py
-```
-
-The database (`data/mess_meal_tracker.db`) will be created automatically on first run.
+Finally, run the program: python main.py
+The database file (SQLite) will be created in the first run.
 
 ## Instructions for Testing
 
 ### Manual Testing
+1. Run the program by typing `python main.py` in the terminal
+2. Follow the instructions in the terminal
+3. For testing choose the option `1` to add a record and enter the following data:
+- Date: `2025-09-20`
+- Meals prepared: `100`
+- Meals served: `95`
+- Meals consumed: `80`
+The program will display the amount of wasted food (in this case it should be `100 - 80 = 20`). Follow the other options to view the data.
 
-1. Run `python main.py`  
-2. Choose option `1` to add a meal record  
-3. Enter sample data:
-   - Date: `2025-09-20`  
-   - Meals prepared: `100`  
-   - Meals served: `95`  
-   - Meals consumed: `80`  
-4. Verify that waste is calculated correctly (`100 - 80 = 20`)  
-5. Choose option `2` to view today’s record  
-6. Choose option `3` to view all records  
-
-### Automated Tests
-
-Run the validation tests:
-
-```bash
-python test_validation.py
-```
-
-Expected output:
-
-```text
+### Automated Testing
+To run the automated tests, execute the following command: python test_validation.py
+The following output should be displayed:
 Running validation tests...
 All validation tests passed.
-```
 
 ## Screenshots
-
-(Add screenshots of:
-- Main menu  
-- Adding a meal record  
-- Viewing records  
-)
+- Main menu 
+- Add record
+- View records
 
 ## License
-
-This project is for educational purposes.
+This project is meant for educational purposes.

@@ -1,79 +1,77 @@
-# database.py
+#database.py - Database operations for Mess Meal Tracker
 
 import sqlite3
-from pathlib import Path
+import os
 from config import DATABASE_PATH
 
 def get_connection():
-    """Get database connection."""
-    Path("data").mkdir(exist_ok=True)
+    """Establish and return connection to SQLite database."""
+    # Ensure data folder exists if specified in path
+    db_dir = os.path.dirname(DATABASE_PATH)
+    if db_dir and not os.path.exists(db_dir):
+        os.makedirs(db_dir, exist_ok=True)
     return sqlite3.connect(DATABASE_PATH)
 
+# create meal record tables
+
 def initialize_database():
-    """Initialize database and create table."""
-    connection = get_connection()
-    cursor = connection.cursor()
-    
+    """Create meal_records table if it does not exist."""
+    conn = get_connection()
+    cursor = conn.cursor()
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS meal_records (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        date TEXT NOT NULL,
-        meals_prepared INTEGER NOT NULL,
-        meals_served INTEGER NOT NULL,
-        meals_consumed INTEGER NOT NULL,
-        food_waste INTEGER NOT NULL
-    )
+        CREATE TABLE IF NOT EXISTS meal_records (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT UNIQUE NOT NULL,
+            meals_prepared INTEGER NOT NULL CHECK (meals_prepared >= 0),
+            meals_served INTEGER NOT NULL CHECK (meals_served >= 0),
+            meals_consumed INTEGER NOT NULL CHECK (meals_consumed >= 0),
+            food_waste INTEGER NOT NULL CHECK (food_waste >= 0),
+            CHECK (meals_served <= meals_prepared),
+            CHECK (meals_consumed <= meals_served)
+        )
     """)
-    
-    connection.commit()
-    connection.close()
+    conn.commit()
+    conn.close()
+
+# Add Records
 
 def add_record(date, prepared, served, consumed, waste):
-    """Add a meal record to the database."""
-    connection = get_connection()
-    cursor = connection.cursor()
-    
+    """Insert a new daily meal record into the database."""
+    conn = get_connection()
+    cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO meal_records (date, meals_prepared, meals_served, meals_consumed, food_waste)
         VALUES (?, ?, ?, ?, ?)
     """, (date, prepared, served, consumed, waste))
-    
-    connection.commit()
-    connection.close()
+    conn.commit()
+    conn.close()
 
-def get_today_record():
-    """Get today's meal record."""
-    from datetime import date
-    connection = get_connection()
-    cursor = connection.cursor()
-    
-    today = date.today().isoformat()
-    
+# Get Today's records
+
+def get_today_record(today_date):
+    """Fetch record for a specific date."""
+    conn = get_connection()
+    cursor = conn.cursor()
     cursor.execute("""
-        SELECT id, date, meals_prepared, meals_served, meals_consumed, food_waste
-        FROM meal_records
+        SELECT date, meals_prepared, meals_served, meals_consumed, food_waste 
+        FROM meal_records 
         WHERE date = ?
-        ORDER BY id DESC
-        LIMIT 1
-    """, (today,))
-    
-    row = cursor.fetchone()
-    connection.close()
-    
-    return row
+    """, (today_date,))
+    record = cursor.fetchone()
+    conn.close()
+    return record
+
+# Get All Records
 
 def get_all_records():
-    """Get all meal records."""
-    connection = get_connection()
-    cursor = connection.cursor()
-    
+    """Fetch all historical meal records ordered by date."""
+    conn = get_connection()
+    cursor = conn.cursor()
     cursor.execute("""
-        SELECT id, date, meals_prepared, meals_served, meals_consumed, food_waste
-        FROM meal_records
-        ORDER BY date, id
+        SELECT date, meals_prepared, meals_served, meals_consumed, food_waste 
+        FROM meal_records 
+        ORDER BY date ASC
     """)
-    
-    rows = cursor.fetchall()
-    connection.close()
-    
-    return rows
+    records = cursor.fetchall()
+    conn.close()
+    return records
