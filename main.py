@@ -1,79 +1,142 @@
 # main.py
+import sqlite3
+from datetime import date
 
-from config import MESSAGES
-from views import display_title, display_menu, display_record, display_all_records, display_success, display_error
-from validation import validate_date, validate_positive_integer, validate_logical_constraints
-from calculations import calculate_waste
-from database import initialize_database, add_record, get_today_record, get_all_records
-from stats import display_statistics
+from database import get_connection, ensure_schema, insert_meal_record, get_today_record, get_all_records
+from validation import validate_date, validate_meals
+from views import print_menu, print_table, print_message
 
-def get_meal_input():
-    """Get meal record input from user."""
-    print("\n--- Add Meal Record ---")
-    
-    date = input("Enter date (YYYY-MM-DD): ").strip()
-    if not validate_date(date):
-        display_error(MESSAGES["invalid_date"])
-        return None
-    
+
+def read_int(prompt: str, min_value: int | None = None, max_value: int | None = None) -> int:
+    while True:
+        try:
+            value = int(input(prompt))
+            if min_value is not None and value < min_value:
+                print_message(f"Value must be at least {min_value}.")
+                continue
+            if max_value is not None and value > max_value:
+                print_message(f"Value must be at most {max_value}.")
+                continue
+            return value
+        except ValueError:
+            print_message("Invalid input. Please enter an integer.")
+
+
+def add_entry():
+    print_message("\n--- Add New Meal Entry ---")
+
+    # Date input
+    while True:
+        date_str = input("Enter date (YYYY-MM-DD): ").strip()
+        try:
+            date_str = validate_date(date_str)
+            break
+        except ValueError as e:
+            print_message(str(e))
+
+    # Meals input
+    while True:
+        prepared = read_int("Meals prepared: ", min_value=1)
+        served = read_int("Meals served: ", min_value=1, max_value=prepared)
+        consumed = read_int("Meals consumed: ", min_value=1, max_value=served)
+
+        try:
+            validated = validate_meals(prepared, served, consumed)
+            break
+        except ValueError as e:
+            print_message(str(e))
+
+    food_waste = validated["food_waste"]
+
+    # Insert into DB
+    conn = get_connection()
     try:
-        prepared = int(input("Enter meals prepared: ").strip())
-        served = int(input("Enter meals served: ").strip())
-        consumed = int(input("Enter meals consumed: ").strip())
-    except ValueError:
-        display_error(MESSAGES["invalid_number"])
-        return None
-    
-    if not validate_positive_integer(str(prepared)) or \
-       not validate_positive_integer(str(served)) or \
-       not validate_positive_integer(str(consumed)):
-        display_error("Values cannot be negative.")
-        return None
-    
-    if not validate_logical_constraints(prepared, served, consumed):
-        display_error("Invalid values: served cannot exceed prepared, consumed cannot exceed served.")
-        return None
-    
-    waste = calculate_waste(prepared, consumed)
-    
-    return {
-        "date": date,
-        "prepared": prepared,
-        "served": served,
-        "consumed": consumed,
-        "waste": waste
-    }
+        insert_meal_record(
+            conn,
+            date_str,
+            validated["meals_prepared"],
+            validated["meals_served"],
+            validated["meals_consumed"],
+            food_waste,
+        )
+        print_message("\nEntry saved successfully.")
+        print_message(f"Food waste for {date_str}: {food_waste} meals.")
+    except sqlite3.IntegrityError:
+        print_message("\nError: An entry for this date already exists or DB constraint failed.")
+    finally:
+        conn.close()
+
+
+def show_today():
+    print_message("\n--- Today's Entry ---")
+    today = date.today().isoformat()
+    conn = get_connection()
+    record = get_today_record(conn, today)
+    conn.close()
+
+    if not record:
+        print_message("No entry found for today.")
+        return
+
+    headers = ["Date", "Prepared", "Served", "Consumed", "Waste"]
+    rows = [
+        [
+            record["date"],
+            record["meals_prepared"],
+            record["meals_served"],
+            record["meals_consumed"],
+            record["food_waste"],
+        ]
+    ]
+    print_table(headers, rows)
+
+
+def show_all():
+    print_message("\n--- All Meal Entries ---")
+    conn = get_connection()
+    records = get_all_records(conn)
+    conn.close()
+
+    if not records:
+        print_message("No entries found in the database.")
+        return
+
+    headers = ["Date", "Prepared", "Served", "Consumed", "Waste"]
+    rows = [
+        [
+            r["date"],
+            r["meals_prepared"],
+            r["meals_served"],
+            r["meals_consumed"],
+            r["food_waste"],
+        ]
+        for r in records
+    ]
+    print_table(headers, rows)
+
 
 def main():
-    """Main application loop."""
-    initialize_database()
-    
+    # Ensure DB and schema
+    conn = get_connection()
+    ensure_schema(conn)
+    conn.close()
+
     while True:
-        display_title()
-        display_menu()
-        
-        choice = input("\nEnter your choice (1-4): ").strip()
-        
+        print_menu()
+        choice = input("Enter your choice (1-4): ").strip()
+
         if choice == "1":
-            data = get_meal_input()
-            if data:
-                add_record(data["date"], data["prepared"], data["served"], data["consumed"], data["waste"])
-                display_success()
-        
+            add_entry()
         elif choice == "2":
-            record = get_today_record()
-            display_record(record)
-        
+            show_today()
         elif choice == "3":
-            records = get_all_records()
-            display_all_records(records)
-        
+            show_all()
         elif choice == "4":
-            print("\nExiting. Thank you for using Mess Meal Tracker!")
+            print_message("\nExiting program.")
             break
-        
         else:
-            display_error("Invalid choice. Please enter a number between 1 and 4.")
+            print_message("Invalid choice. Please select 1-4.")
+
 
 if __name__ == "__main__":
     main()

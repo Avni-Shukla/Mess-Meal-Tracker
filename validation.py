@@ -1,47 +1,50 @@
 # validation.py
+from datetime import datetime
 
-from config import DATE_FORMAT
 
-def validate_date(date_string):
-    """Validate date format (YYYY-MM-DD)."""
-    from datetime import datetime
+def validate_date(date_str: str) -> str:
+    """
+    Validate date string in YYYY-MM-DD format.
+    Raises ValueError if format is invalid.
+    """
     try:
-        datetime.strptime(date_string, DATE_FORMAT)
-        return True
+        dt = datetime.strptime(date_str, "%Y-%m-%d")
     except ValueError:
-        return False
+        raise ValueError("Invalid date format. Use YYYY-MM-DD.")
+    
+    # Optional: reject future dates (agar chaho toh uncomment kar do)
+    # if dt.date() > datetime.today().date():
+    #     raise ValueError("Date cannot be in the future.")
+    
+    return date_str
 
-def validate_positive_integer(value):
-    """Validate that value is a non-negative integer."""
-    try:
-        num = int(value)
-        return num >= 0
-    except ValueError:
-        return False
 
-def validate_logical_constraints(prepared, served, consumed):
-    """Validate logical constraints between meal values."""
-    if served > prepared:
-        return False
-    if consumed > served:
-        return False
-    return True
-
-def validate_meal_values(prepared, served, plate_waste):
-    """Legacy validation function."""
+def validate_meals(prepared: int, served: int, consumed: int) -> dict:
+    """
+    Validate meal counts according to business rules:
+      - meals_prepared > 0
+      - 0 < meals_served <= meals_prepared
+      - 0 < meals_consumed <= meals_served
+    
+    Returns a dict with validated values and computed food_waste.
+    Raises ValueError if any rule is violated.
+    """
     if prepared <= 0:
-        return False, "Prepared portions must be greater than 0."
-
-    if served < 0:
-        return False, "Served portions cannot be negative."
-
-    if served > prepared:
-        return False, "Served portions cannot be greater than prepared portions."
-
-    if plate_waste < 0:
-        return False, "Estimated plate waste cannot be negative."
-
-    if plate_waste > served:
-        return False, "Estimated plate waste cannot be greater than served portions."
-
-    return True, "Valid input."
+        raise ValueError("meals_prepared must be greater than 0.")
+    
+    if not (0 < served <= prepared):
+        raise ValueError("meals_served must be > 0 and <= meals_prepared.")
+    
+    if not (0 < consumed <= served):
+        raise ValueError("meals_consumed must be > 0 and <= meals_served.")
+    
+    food_waste = prepared - consumed
+    if food_waste < 0:
+        raise ValueError("food_waste cannot be negative.")
+    
+    return {
+        "meals_prepared": prepared,
+        "meals_served": served,
+        "meals_consumed": consumed,
+        "food_waste": food_waste,
+    }
